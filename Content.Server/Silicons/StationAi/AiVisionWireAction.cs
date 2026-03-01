@@ -3,6 +3,7 @@
 // SPDX-FileCopyrightText: 2024 Tadeo <td12233a@gmail.com>
 // SPDX-FileCopyrightText: 2024 metalgearsloth <31366439+metalgearsloth@users.noreply.github.com>
 // SPDX-FileCopyrightText: 2025 taydeo <td12233a@gmail.com>
+// SPDX-FileCopyrightText: 2025 Tayrtahn <tayrtahn@gmail.com>
 //
 // SPDX-License-Identifier: MIT
 
@@ -31,13 +32,13 @@ public sealed partial class AiVisionWireAction : ComponentWireAction<StationAiVi
     public override bool Cut(EntityUid user, Wire wire, StationAiVisionComponent component)
     {
         return EntityManager.System<SharedStationAiSystem>()
-            .SetVisionEnabled((component.Owner, component), false, announce: true);
+            .SetVisionEnabled((wire.Owner, component), false, announce: true);
     }
 
     public override bool Mend(EntityUid user, Wire wire, StationAiVisionComponent component)
     {
         return EntityManager.System<SharedStationAiSystem>()
-            .SetVisionEnabled((component.Owner, component), true);
+            .SetVisionEnabled((wire.Owner, component), true);
     }
 
     public override void Pulse(EntityUid user, Wire wire, StationAiVisionComponent component)
