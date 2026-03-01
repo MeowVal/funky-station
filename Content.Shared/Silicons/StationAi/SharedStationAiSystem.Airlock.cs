@@ -10,6 +10,7 @@
 using Content.Shared.Doors.Components;
 using Robust.Shared.Serialization;
 using Content.Shared.Electrocution;
+using Content.Shared.Interaction;
 
 namespace Content.Shared.Silicons.StationAi;
 
@@ -26,9 +27,15 @@ public abstract partial class SharedStationAiSystem
 
     /// <summary>
     /// Attempts to bolt door. If wire was cut (AI or for bolts) or its not powered - notifies AI and does nothing.
+    /// Does not notify if the door is in the fog of war nor do anything.
     /// </summary>
     private void OnAirlockBolt(EntityUid ent, DoorBoltComponent component, StationAiBoltEvent args)
     {
+
+        if (!IsAiInRangeOfTarget(args.User, ent))
+            return;
+
+
         if (component.BoltWireCut)
         {
             ShowDeviceNotRespondingPopup(args.User);
@@ -44,9 +51,15 @@ public abstract partial class SharedStationAiSystem
 
     /// <summary>
     /// Attempts to toggle the door's emergency access. If wire was cut (AI) or its not powered - notifies AI and does nothing.
+    /// Does not notify if the door is in the fog of war nor do anything.
     /// </summary>
     private void OnAirlockEmergencyAccess(EntityUid ent, AirlockComponent component, StationAiEmergencyAccessEvent args)
     {
+
+        if (!IsAiInRangeOfTarget(args.User, ent))
+            return;
+
+
         if (!PowerReceiver.IsPowered(ent))
         {
             ShowDeviceNotRespondingPopup(args.User);
@@ -58,9 +71,14 @@ public abstract partial class SharedStationAiSystem
 
     /// <summary>
     /// Attempts to electrify the door. If wire was cut (AI or for one of power-wires) or its not powered - notifies AI and does nothing.
+    /// Does not notify if the door is in the fog of war nor do anything.
     /// </summary>
     private void OnElectrified(EntityUid ent, ElectrifiedComponent component, StationAiElectrifiedEvent args)
     {
+        if (!IsAiInRangeOfTarget(args.User, ent))
+            return;
+
+
         if (
             component.IsWireCut
             || !PowerReceiver.IsPowered(ent)
@@ -75,6 +93,21 @@ public abstract partial class SharedStationAiSystem
             ? component.AirlockElectrifyDisabled
             : component.AirlockElectrifyEnabled;
         _audio.PlayLocal(soundToPlay, ent, args.User);
+    }
+
+    /// <summary>
+    /// Raises the InRangeOverrideEvent to call OnAiInRange to make sure the entity is in the line of sight of the AI camera.
+    /// Returns the result of InRange as a bool.
+    /// </summary>
+    private bool IsAiInRangeOfTarget(EntityUid user, EntityUid target)
+    {
+        var ev = new InRangeOverrideEvent(user, target);
+
+
+        EntityManager.EventBus.RaiseLocalEvent(target, ref ev);
+
+
+        return ev.Handled && ev.InRange;
     }
 }
 
